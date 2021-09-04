@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.16/vue.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <select v-model="path">
+            <option v-for="p in paths">{{p}}</option>
+        </select>
+        <input v-model="path" type="text" style="width:100%" />
+        <br />
+        <button @click="send()">Send</button>
+        <br />
+        <textarea v-model="data" style="width:100%"></textarea>
+        <br />
+        <textarea :value="response" style="width:100%">
+
+        </textarea>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                path: '',
+                data: '',
+                response: '',
+                devSocket: {},
+                paths: [
+                    'import/city',
+                    'import/player/military',
+                    'import/player/ranking',
+                    'import/alliance/ranking',
+                    'import/alliance/blessing',
+                    'import/alliance/loyalty',
+                    'import/rankings/allaince/score',
+                    'import/rankings/allaince/military',
+                    'import/rankings/allaince/temples',
+                    'import/rankings/allaince/rep',
+                    'import/report',
+                    'import/attack/imcoming',
+                    'import/attack/outgoing',
+                    'import/rankings/player/score',
+                    'import/rankings/player/military',
+                    'import/raiding/caverns',
+                    'import/raiding/bosses',
+                    'import/temples/player',
+                    'import/temples/alliance',
+                    'import/temples/crowns'
+                ],
+            },
+            methods: {
+                playerMilitary: function () {
+
+                },
+                playerCity: function () {
+
+                },
+                allianceRankingScore: function (client) {
+
+                },
+                allianceRankingBlessing: function () {
+
+                },
+                allianceDonations: function () {
+
+                },
+                allianceLoyal: function () {
+
+                },
+                allianceRankingMilitary: function () {
+
+                },
+                allianceRankingTemples: function () {
+
+                },
+                allianceRankingRep: function () {
+
+                },
+                attackIncoming: function () {
+
+                },
+                attackOutgoing: function () {
+
+                },
+                playerRankingScore: function () {
+
+                },
+                playerRankingMilitary: function () {
+
+                },
+                authenticate() {
+                    let data = {
+                        path: 'auth',
+                        inGameName: 'player',
+                        token: 'token'
+                    };
+
+                    if (this.devSocket.readyState == WebSocket.OPEN) {
+                        this.devSocket.send(JSON.stringify(data));
+                    }
+                },
+                connect() {
+                    let self = this;
+                    this.devSocket = new WebSocket('ws://extension.cotg.management');
+
+                    this.devSocket.onmessage = function (evt) {
+                        self.onresponse(evt)
+                    };
+
+                    this.devSocket.onopen = () => {
+                        this.authenticate();
+                    }
+
+                    this.devSocket.onclose = function (evt) {
+                        self.onclose(evt)
+                    };
+                },
+                send() {
+                    this.devSocket.send(JSON.stringify(
+                        {
+                            path: this.path, data: this.data, "inGameName": "player", "token": "token"
+                        }));
+                },
+                onresponse(evt) {
+                    let response = JSON.parse(evt.data);
+
+                    if (response.responseId == 'auth') {
+                        if (response.status == 200) {
+                            console.log('Authenticated.');
+                        } else {
+                            console.log(`Something went wrong authenticating, ${response.data}`);
+                        }
+                    }
+
+                    if (response.action === 'import') {
+                        switch (response.data) {
+                            case 'playerMilitary':
+                                this.devSocket.send(JSON.stringify({ path: this.path, data: this.data, "inGameName": "player", "token": "token" }));
+                                break;
+                            case 'playerCity':
+                                this.devSocket.send(JSON.stringify({ path: this.path, data: this.data, "inGameName": "player", "token": "token" }));
+                                break;
+                            case 'allianceRankingScore':
+                                this.allianceRankingScore();
+                                break;
+                            case 'allianceRankingBlessing':
+                                this.allianceRankingBlessing();
+                                break;
+                            case 'allianceDonations':
+                                this.allianceDonations();
+                                break;
+                            case 'allianceLoyal':
+                                this.allianceLoyal();
+                                break;
+                            case 'allianceRankingMilitary':
+                                this.allianceRankingMilitary();
+                                break;
+                            case 'allianceRankingTemples':
+                                this.allianceRankingTemples();
+                                break;
+                            case 'allianceRankingRep':
+                                this.allianceRankingRep();
+                                break;
+                            case 'attackIncoming':
+                                this.attackIncoming();
+                                break;
+                            case 'attackOutgoing':
+                                this.attackOutgoing();
+                                break;
+                            case 'playerRankingScore':
+                                this.playerRankingScore();
+                                break;
+                            case 'playerRankingMilitary':
+                                this.playerRankingMilitary();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    this.response += evt.data + '\n';
+                },
+                onclose(evt) {
+                    // try to reconnect.
+                    this.connect();
+                }
+            },
+            created() {
+                this.connect();
+            },
+        })
+    </script>
+</body>
+
+</html>
